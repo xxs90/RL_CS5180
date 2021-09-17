@@ -75,7 +75,7 @@ def simulate(state: Tuple[int, int], action: Action):
 
     # TODO modify action_taken so that 10% of the time, the action_taken is perpendicular to action (there are 2 perpendicular actions for each action)
     random_number = random.randint(1, 10)
-    #print("There will be noise that affect your step, noise num is: " + str(random_number))
+    # print("There will be noise that affect your step, noise num is: " + str(random_number))
     if random_number == 10:
         action_taken = Action((action + 1) % 4)
     elif random_number == 9:
@@ -91,14 +91,14 @@ def simulate(state: Tuple[int, int], action: Action):
     reward = 0
 
     boundaries = [
-        (-1, -1), (-1, 0), (-1, 1), (-1, 2), (-1,  3), (-1,  4),
-        (-1,  5), (-1, 6), (-1, 7), (-1, 8), (-1,  9), (-1, 10),
-        (11,  0), (11, 1), (11, 2), (11, 3), (11,  4), (11,  5),
-        (11,  6), (11, 7), (11, 8), (11, 9), (11, 10), (11, 11),
-        (0,  -1), (1, -1), (2, -1), (3, -1), (4,  -1), (5,  -1),
-        (6,  -1), (7, -1), (8, -1), (9, -1), (10, -1), (11, -1),
-        (-1, 11), (0, 11), (1, 11), (2, 11), (3,  11), (4,  11),
-        (5,  11), (6, 11), (7, 11), (8, 11), (9,  11), (10, 11),
+        (-1, -1), (-1, 0), (-1, 1), (-1, 2), (-1, 3), (-1, 4),
+        (-1, 5), (-1, 6), (-1, 7), (-1, 8), (-1, 9), (-1, 10),
+        (11, 0), (11, 1), (11, 2), (11, 3), (11, 4), (11, 5),
+        (11, 6), (11, 7), (11, 8), (11, 9), (11, 10), (11, 11),
+        (0, -1), (1, -1), (2, -1), (3, -1), (4, -1), (5, -1),
+        (6, -1), (7, -1), (8, -1), (9, -1), (10, -1), (11, -1),
+        (-1, 11), (0, 11), (1, 11), (2, 11), (3, 11), (4, 11),
+        (5, 11), (6, 11), (7, 11), (8, 11), (9, 11), (10, 11),
     ]
     no_way = walls + boundaries
 
@@ -108,9 +108,9 @@ def simulate(state: Tuple[int, int], action: Action):
 
     if next_state == goal_state:
         reward = 1
-        #print("You did it! You arrive at (10, 10) and your reward is 1.")
-    #else:
-        #print("You arrive at " + str(next_state) + " with " + str(action_taken) + ". The reward is " + str(reward) + ".")
+        # print("You did it! You arrive at (10, 10) and your reward is 1.")
+    # else:
+    # print("You arrive at " + str(next_state) + " with " + str(action_taken) + ". The reward is " + str(reward) + ".")
 
     return next_state, reward
 
@@ -148,9 +148,9 @@ def manual_policy(state: Tuple[int, int]):
 
 # Q2
 def agent(
-    steps: int = 1000,
-    trials: int = 1,
-    policy=Callable[[Tuple[int, int]], Action],
+        steps: int = 1000,
+        trials: int = 1,
+        policy=Callable[[Tuple[int, int]], Action],
 ):
     """
     An agent that provides actions to the environment (actions are determined by policy), and receives
@@ -178,8 +178,8 @@ def agent(
     for t in range(trials):
         state = reset()
         i = 0
-        reward_list = []
         cumulative_reward = 0
+        reward_list = []
 
         while i < steps:
             # TODO select action to take
@@ -196,6 +196,7 @@ def agent(
         rewards.append(reward_list)
     return rewards
 
+
 # Q3
 def random_policy(state: Tuple[int, int]):
     """A random policy that returns an action uniformly at random
@@ -210,8 +211,7 @@ def random_policy(state: Tuple[int, int]):
     random_number = random.uniform(0, 4)
     action = Action(math.trunc(random_number))
 
-    #print(random_number)
-
+    # print(random_number)
 
     return action
 
@@ -227,7 +227,8 @@ def worse_policy(state: Tuple[int, int]):
         action (Action)
     """
     # TODO
-    pass
+    action = Action.UP
+    return action
 
 
 # Q4
@@ -241,7 +242,27 @@ def better_policy(state: Tuple[int, int]):
         action (Action)
     """
     # TODO
-    pass
+    prob = random.uniform(0, 10)
+    if prob < 1.7:
+        action = Action.LEFT
+    elif prob < 3.4:
+        action = Action.DOWN
+    elif prob < 6.7:
+        action = Action.UP
+    else:
+        action = Action.RIGHT
+    return Action(action)
+    #random_number = random.randint(1, 10)
+    # if random_number == 1 | 2:
+    #     action = Action(0)
+    # elif random_number == 3 | 4:
+    #     action = Action(1)
+    # elif random_number == 5 | 6 | 7:
+    #     action = Action(2)
+    # else:
+    #     action = Action(3)
+    #
+    # return action
 
 
 def main():
@@ -250,22 +271,23 @@ def main():
     print("This is a Four Room Problem, the initial state is (0, 0) and the final goal is (10, 10)")
     policy_select = input("Do you want to choose manual policy? (Y for yes, N for no)")
 
+    steps = 10000
+    trails = 10
+
     # manual policy
     if policy_select == "Y":
         agent(100, 1, manual_policy)
 
-    else:
-        steps = 10000
-        trails = 10
-
         # random policy
-        #plt.title("Random Policy")
+    elif policy_select == "R":
+        plt.title("Random Policy")
         plt.xlabel("Steps")
         plt.ylabel("Cumulative reward")
+
         rewards = agent(steps, trails, random_policy)
         total_list = [0] * steps
         step = np.arange(steps)
-        #print(rewards)
+        # print(rewards)
 
         for i in range(trails):
             rewards_list = rewards[i]
@@ -274,14 +296,53 @@ def main():
 
         print(total_list)
         mean_list = (np.array(total_list)) / trails
-        plt.plot(step, mean_list, 'k', )
+        plt.plot(step, mean_list, 'k')
 
         plt.grid(color="gray", linestyle="--", linewidth=0.3)
         plt.figure(figsize=(20, 16))
         plt.show()
 
-
     # three policy comparison
+    else:
+        plt.title("Policy Comparison")
+        plt.xlabel("Steps")
+        plt.ylabel("Cumulative reward")
+
+        random_rewards = agent(steps, trails, random_policy)
+        worse_rewards = agent(steps, trails, worse_policy)
+        better_rewards = agent(steps, trails, better_policy)
+        random_total_list = [0] * steps
+        worse_total_list = [0] * steps
+        better_total_list = [0] * steps
+        step = np.arange(steps)
+        #print(rewards)
+
+        for i in range(trails):
+            random_rewards_list = random_rewards[i]
+            random_total_list = np.add(random_total_list, random_rewards_list)
+            plt.plot(step, random_rewards_list, ':')
+            worse_rewards_list = worse_rewards[i]
+            worse_total_list = np.add(worse_total_list, worse_rewards_list)
+            plt.plot(step, worse_rewards_list, ':')
+            better_rewards_list = better_rewards[i]
+            better_total_list = np.add(better_total_list, better_rewards_list)
+            plt.plot(step, better_rewards_list, ':')
+
+        print(random_total_list)
+        random_mean_list = (np.array(random_total_list)) / trails
+        plt.plot(step, random_mean_list, 'k')
+
+        print(worse_total_list)
+        worse_mean_list = (np.array(worse_total_list)) / trails
+        plt.plot(step, worse_mean_list, 'g')
+
+        print(better_total_list)
+        better_mean_list = (np.array(better_total_list)) / trails
+        plt.plot(step, better_mean_list, 'b')
+
+        plt.grid(color="gray", linestyle="--", linewidth=0.3)
+        plt.figure(figsize=(20, 16))
+        plt.show()
 
 
 if __name__ == "__main__":
