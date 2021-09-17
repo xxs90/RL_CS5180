@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import random
+import math
 from typing import Tuple, Callable
 from enum import IntEnum
 
@@ -59,38 +61,56 @@ def simulate(state: Tuple[int, int], action: Action):
     # Walls are listed for you
     # Coordinate system is (x, y) where x is the horizontal and y is the vertical direction
     walls = [
-        (0, 5),
-        (2, 5),
-        (3, 5),
-        (4, 5),
-        (5, 0),
-        (5, 2),
-        (5, 3),
-        (5, 4),
-        (5, 5),
-        (5, 6),
-        (5, 7),
-        (5, 9),
-        (5, 10),
-        (6, 4),
-        (7, 4),
-        (9, 4),
-        (10, 4),
+        (0, 5), (2, 5), (3, 5), (4, 5),
+        (5, 0), (5, 2), (5, 3), (5, 4),
+        (5, 5), (5, 6), (5, 7), (5, 9), (5, 10),
+        (6, 4), (7, 4), (9, 4), (10, 4),
     ]
 
     # TODO check if goal was reached
     goal_state = (10, 10)
+    if state == goal_state:
+        state = reset()
+        return state, 0
 
     # TODO modify action_taken so that 10% of the time, the action_taken is perpendicular to action (there are 2 perpendicular actions for each action)
-    action_taken = action
+    random_number = random.randint(1, 10)
+    #print("There will be noise that affect your step, noise num is: " + str(random_number))
+    if random_number == 10:
+        action_taken = Action((action + 1) % 4)
+    elif random_number == 9:
+        action_taken = Action((action + 3) % 4)
+    else:
+        action_taken = action
 
     # TODO calculate the next state and reward given state and action_taken
     # You can use actions_to_dxdy() to calculate the next state
     # Check that the next state is within boundaries and is not a wall
     # One possible way to work with boundaries is to add a boundary wall around environment and
     # simply check whether the next state is a wall
-    next_state = None
-    reward = None
+    reward = 0
+
+    boundaries = [
+        (-1, -1), (-1, 0), (-1, 1), (-1, 2), (-1,  3), (-1,  4),
+        (-1,  5), (-1, 6), (-1, 7), (-1, 8), (-1,  9), (-1, 10),
+        (11,  0), (11, 1), (11, 2), (11, 3), (11,  4), (11,  5),
+        (11,  6), (11, 7), (11, 8), (11, 9), (11, 10), (11, 11),
+        (0,  -1), (1, -1), (2, -1), (3, -1), (4,  -1), (5,  -1),
+        (6,  -1), (7, -1), (8, -1), (9, -1), (10, -1), (11, -1),
+        (-1, 11), (0, 11), (1, 11), (2, 11), (3,  11), (4,  11),
+        (5,  11), (6, 11), (7, 11), (8, 11), (9,  11), (10, 11),
+    ]
+    no_way = walls + boundaries
+
+    next_state = tuple(map(sum, zip(state, actions_to_dxdy(Action(action_taken)))))
+    if next_state in no_way:
+        next_state = state
+
+    if next_state == goal_state:
+        reward = 1
+        #print("You did it! You arrive at (10, 10) and your reward is 1.")
+    #else:
+        #print("You arrive at " + str(next_state) + " with " + str(action_taken) + ". The reward is " + str(reward) + ".")
 
     return next_state, reward
 
@@ -106,7 +126,24 @@ def manual_policy(state: Tuple[int, int]):
         action (Action)
     """
     # TODO
-    pass
+
+    print("\nThis is a Four Rooms Environment, you are currently at " + str(state) + ".")
+    print("What is the action you want to do?")
+    action_input = input("(l: \"left\", d: \"down\", r: \"right\", u: \"up\"): ")
+
+    if action_input is not None:
+        if action_input == "l":
+            action = Action(0)
+        elif action_input == "d":
+            action = Action(1)
+        elif action_input == "r":
+            action = Action(2)
+        elif action_input == "u":
+            action = Action(3)
+        else:
+            print("Invalid action input, please try again.")
+
+    return action
 
 
 # Q2
@@ -136,16 +173,28 @@ def agent(
 
     """
     # TODO you can use the following structure and add to it as needed
+    rewards = []
+
     for t in range(trials):
         state = reset()
         i = 0
+        reward_list = []
+        cumulative_reward = 0
+
         while i < steps:
             # TODO select action to take
-            action = None
+            action = policy(state)
+
             # TODO take step in environment using simulate()
+            state, reward = simulate(state, action)
 
             # TODO record the reward
+            cumulative_reward += reward
+            reward_list.append(cumulative_reward)
+            i += 1
 
+        rewards.append(reward_list)
+    return rewards
 
 # Q3
 def random_policy(state: Tuple[int, int]):
@@ -158,7 +207,13 @@ def random_policy(state: Tuple[int, int]):
         action (Action)
     """
     # TODO
-    pass
+    random_number = random.uniform(0, 4)
+    action = Action(math.trunc(random_number))
+
+    #print(random_number)
+
+
+    return action
 
 
 # Q4
@@ -192,7 +247,41 @@ def better_policy(state: Tuple[int, int]):
 def main():
     # TODO run code for Q2~Q4 and plot results
     # You may be able to reuse the agent() function for each question
-    pass
+    print("This is a Four Room Problem, the initial state is (0, 0) and the final goal is (10, 10)")
+    policy_select = input("Do you want to choose manual policy? (Y for yes, N for no)")
+
+    # manual policy
+    if policy_select == "Y":
+        agent(100, 1, manual_policy)
+
+    else:
+        steps = 10000
+        trails = 10
+
+        # random policy
+        #plt.title("Random Policy")
+        plt.xlabel("Steps")
+        plt.ylabel("Cumulative reward")
+        rewards = agent(steps, trails, random_policy)
+        total_list = [0] * steps
+        step = np.arange(steps)
+        #print(rewards)
+
+        for i in range(trails):
+            rewards_list = rewards[i]
+            total_list = np.add(total_list, rewards_list)
+            plt.plot(step, rewards_list, ':')
+
+        print(total_list)
+        mean_list = (np.array(total_list)) / trails
+        plt.plot(step, mean_list, 'k', )
+
+        plt.grid(color="gray", linestyle="--", linewidth=0.3)
+        plt.figure(figsize=(20, 16))
+        plt.show()
+
+
+    # three policy comparison
 
 
 if __name__ == "__main__":
