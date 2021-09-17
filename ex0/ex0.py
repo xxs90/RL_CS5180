@@ -108,9 +108,9 @@ def simulate(state: Tuple[int, int], action: Action):
 
     if next_state == goal_state:
         reward = 1
-        # print("You did it! You arrive at (10, 10) and your reward is 1.")
-    # else:
-    # print("You arrive at " + str(next_state) + " with " + str(action_taken) + ". The reward is " + str(reward) + ".")
+        print("You did it! You arrive at (10, 10) and your reward is 1.")
+    else:
+        print("You arrive at " + str(next_state) + " with " + str(action_taken) + ". The reward is " + str(reward) + ".")
 
     return next_state, reward
 
@@ -131,17 +131,17 @@ def manual_policy(state: Tuple[int, int]):
     print("What is the action you want to do?")
     action_input = input("(l: \"left\", d: \"down\", r: \"right\", u: \"up\"): ")
 
-    if action_input is not None:
-        if action_input == "l":
-            action = Action(0)
-        elif action_input == "d":
-            action = Action(1)
-        elif action_input == "r":
-            action = Action(2)
-        elif action_input == "u":
-            action = Action(3)
-        else:
-            print("Invalid action input, please try again.")
+    if action_input == "l":
+        action = Action(0)
+    elif action_input == "d":
+        action = Action(1)
+    elif action_input == "r":
+        action = Action(2)
+    elif action_input == "u":
+        action = Action(3)
+    else:
+        print("Invalid action input, please try again.")
+        return manual_policy(state)
 
     return action
 
@@ -208,8 +208,10 @@ def random_policy(state: Tuple[int, int]):
         action (Action)
     """
     # TODO
-    random_number = random.uniform(0, 4)
-    action = Action(math.trunc(random_number))
+    # random_number = random.uniform(0, 4)
+    # action = Action(math.trunc(random_number))
+    random_number = random.randint(0, 3)
+    action = Action(random_number)
 
     # print(random_number)
 
@@ -227,8 +229,16 @@ def worse_policy(state: Tuple[int, int]):
         action (Action)
     """
     # TODO
-    action = Action.UP
-    return action
+    random_number = random.uniform(0, 10)
+    if random_number > 7:
+        action = Action(0)
+    elif random_number > 5:
+        action = Action(1)
+    elif random_number > 3:
+        action = Action(2)
+    else:
+        action = Action(3)
+    return Action(action)
 
 
 # Q4
@@ -242,69 +252,95 @@ def better_policy(state: Tuple[int, int]):
         action (Action)
     """
     # TODO
-    prob = random.uniform(0, 10)
-    if prob < 1.7:
-        action = Action.LEFT
-    elif prob < 3.4:
-        action = Action.DOWN
-    elif prob < 6.7:
-        action = Action.UP
+    random_number = random.uniform(0, 10)
+    if random_number < 1.7:
+        action = Action(0)
+    elif random_number < 3.4:
+        action = Action(1)
+    elif random_number < 6.7:
+        action = Action(2)
     else:
-        action = Action.RIGHT
+        action = Action(3)
     return Action(action)
-    #random_number = random.randint(1, 10)
-    # if random_number == 1 | 2:
-    #     action = Action(0)
-    # elif random_number == 3 | 4:
-    #     action = Action(1)
-    # elif random_number == 5 | 6 | 7:
-    #     action = Action(2)
-    # else:
-    #     action = Action(3)
-    #
-    # return action
 
 
 def main():
     # TODO run code for Q2~Q4 and plot results
     # You may be able to reuse the agent() function for each question
-    print("This is a Four Room Problem, the initial state is (0, 0) and the final goal is (10, 10)")
-    policy_select = input("Do you want to choose manual policy? (Y for yes, N for no)")
+    print("This is a Four Room Problem, the initial state is (0, 0) and the final goal is (10, 10).")
+    print("What policy do you want to choose? ")
+    policy_select = input("(m: \"manual\", r: \"random\", w: \"worse\", b: \"better\", c: \"comparison\"): ")
 
     steps = 10000
     trails = 10
 
     # manual policy
-    if policy_select == "Y":
+    if policy_select == "m":
         agent(100, 1, manual_policy)
 
-        # random policy
-    elif policy_select == "R":
+    # random policy
+    elif policy_select == "r":
         plt.title("Random Policy")
         plt.xlabel("Steps")
         plt.ylabel("Cumulative reward")
 
         rewards = agent(steps, trails, random_policy)
         total_list = [0] * steps
-        step = np.arange(steps)
-        # print(rewards)
 
         for i in range(trails):
             rewards_list = rewards[i]
             total_list = np.add(total_list, rewards_list)
-            plt.plot(step, rewards_list, ':')
+            plt.plot(rewards_list, ':')
 
-        print(total_list)
+        # print(total_list)
         mean_list = (np.array(total_list)) / trails
-        plt.plot(step, mean_list, 'k')
+        plt.plot(mean_list, 'k')
 
-        plt.grid(color="gray", linestyle="--", linewidth=0.3)
-        plt.figure(figsize=(20, 16))
+        plt.show()
+
+    elif policy_select == "w":
+        plt.title("Worse Policy")
+        plt.xlabel("Steps")
+        plt.ylabel("Cumulative reward")
+
+        worse_rewards = agent(steps, trails, worse_policy)
+        worse_total_list = [0] * steps
+        # print(rewards)
+
+        for i in range(trails):
+            worse_rewards_list = worse_rewards[i]
+            worse_total_list = np.add(worse_total_list, worse_rewards_list)
+            plt.plot(worse_rewards_list, ':')
+
+        # print(worse_total_list)
+        worse_mean_list = (np.array(worse_total_list)) / trails
+        plt.plot(worse_mean_list, 'g', label='Worse policy')
+
+        plt.show()
+
+    elif policy_select == "b":
+        plt.title("Better Policy")
+        plt.xlabel("Steps")
+        plt.ylabel("Cumulative reward")
+
+        better_rewards = agent(steps, trails, better_policy)
+        better_total_list = [0] * steps
+        # print(rewards)
+
+        for i in range(trails):
+            better_rewards_list = better_rewards[i]
+            better_total_list = np.add(better_total_list, better_rewards_list)
+            plt.plot(better_rewards_list, ':')
+
+        # print(better_total_list)
+        better_mean_list = (np.array(better_total_list)) / trails
+        plt.plot(better_mean_list, 'b', label='Better policy')
+
         plt.show()
 
     # three policy comparison
-    else:
-        plt.title("Policy Comparison")
+    elif policy_select == "c":
+        plt.title("Comparison Policies")
         plt.xlabel("Steps")
         plt.ylabel("Cumulative reward")
 
@@ -314,35 +350,36 @@ def main():
         random_total_list = [0] * steps
         worse_total_list = [0] * steps
         better_total_list = [0] * steps
-        step = np.arange(steps)
-        #print(rewards)
+        # print(rewards)
 
         for i in range(trails):
             random_rewards_list = random_rewards[i]
             random_total_list = np.add(random_total_list, random_rewards_list)
-            plt.plot(step, random_rewards_list, ':')
+            plt.plot(random_rewards_list, ':')
             worse_rewards_list = worse_rewards[i]
             worse_total_list = np.add(worse_total_list, worse_rewards_list)
-            plt.plot(step, worse_rewards_list, ':')
+            plt.plot(worse_rewards_list, ':')
             better_rewards_list = better_rewards[i]
             better_total_list = np.add(better_total_list, better_rewards_list)
-            plt.plot(step, better_rewards_list, ':')
+            plt.plot(better_rewards_list, ':')
 
-        print(random_total_list)
+        #print(random_total_list)
         random_mean_list = (np.array(random_total_list)) / trails
-        plt.plot(step, random_mean_list, 'k')
-
-        print(worse_total_list)
+        plt.plot(random_mean_list, 'k', label='Random policy')
+        #print(worse_total_list)
         worse_mean_list = (np.array(worse_total_list)) / trails
-        plt.plot(step, worse_mean_list, 'g')
-
-        print(better_total_list)
+        plt.plot(worse_mean_list, 'g', label='Worse policy')
+        #print(better_total_list)
         better_mean_list = (np.array(better_total_list)) / trails
-        plt.plot(step, better_mean_list, 'b')
+        plt.plot(better_mean_list, 'b', label='Better policy')
 
-        plt.grid(color="gray", linestyle="--", linewidth=0.3)
-        plt.figure(figsize=(20, 16))
+        plt.legend(loc='upper right')
+        plt.figure(figsize=(20, 28))
         plt.show()
+
+    else:
+        print("Invalid Policy, please try again.\n")
+        main()
 
 
 if __name__ == "__main__":
