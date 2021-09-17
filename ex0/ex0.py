@@ -285,6 +285,7 @@ def main():
         plt.ylabel("Cumulative reward")
 
         rewards = agent(steps, trails, random_policy)
+        print(rewards)
         total_list = [0] * steps
 
         for i in range(trails):
@@ -292,7 +293,7 @@ def main():
             total_list = np.add(total_list, rewards_list)
             plt.plot(rewards_list, ':')
 
-        # print(total_list)
+        #print(total_list)
         mean_list = (np.array(total_list)) / trails
         plt.plot(mean_list, 'k')
 
