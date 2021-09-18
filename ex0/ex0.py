@@ -1,7 +1,15 @@
+"""
+    CS 4180/5180 RL and SDM
+    Exercise 0: An Invitation to Reinforcement Learning
+    Prof: Robert Platt
+    Date: September 14th, 2021
+    Author: Guanang Su
+
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-import math
+#import math
 from typing import Tuple, Callable
 from enum import IntEnum
 
@@ -75,7 +83,7 @@ def simulate(state: Tuple[int, int], action: Action):
 
     # TODO modify action_taken so that 10% of the time, the action_taken is perpendicular to action (there are 2 perpendicular actions for each action)
     random_number = random.randint(1, 10)
-    # print("There will be noise that affect your step, noise num is: " + str(random_number))
+    print("There will be noise that affect your step, noise num is: " + str(random_number))
     if random_number == 10:
         action_taken = Action((action + 1) % 4)
     elif random_number == 9:
@@ -232,9 +240,9 @@ def worse_policy(state: Tuple[int, int]):
     random_number = random.uniform(0, 10)
     if random_number > 7:
         action = Action(0)
-    elif random_number > 5:
+    elif random_number > 4:
         action = Action(1)
-    elif random_number > 3:
+    elif random_number > 2:
         action = Action(2)
     else:
         action = Action(3)
