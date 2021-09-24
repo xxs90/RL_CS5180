@@ -151,7 +151,10 @@ class UCB(BanditAgent):
         (use argmax() from above)
         """
         # TODO
-        action = argmax(self.Q + self.c * np.sqrt(np.ln(self.t) / self.N))
+        if 0 in self.N:
+            action = argmax(self.Q)
+        else:
+            action = argmax(self.Q + self.c * np.sqrt(np.ln(self.t) / self.N))
         return action
 
     def update(self, action: int, reward: float) -> None:

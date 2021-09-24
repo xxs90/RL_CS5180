@@ -49,8 +49,6 @@ def q4(k: int, num_samples: int):
     plt.show()
 
 
-
-
 def q6(k: int, trials: int, steps: int):
     """Q6
 
@@ -63,38 +61,48 @@ def q6(k: int, trials: int, steps: int):
     """
     # TODO initialize env and agents here
     env = BanditEnv(k=k)
-    env.reset()
-    agents = [ag.EpsilonGreedy(k=k, init=0, epsilon=0, step_size=steps),
-              ag.EpsilonGreedy(k=k, init=0, epsilon=0.01, step_size=steps),
-              ag.EpsilonGreedy(k=k, init=0, epsilon=0.1, step_size=steps)]
+    agents = [ag.EpsilonGreedy(k=k, init=0, epsilon=0),
+              ag.EpsilonGreedy(k=k, init=0, epsilon=0.01),
+              ag.EpsilonGreedy(k=k, init=0, epsilon=0.1)]
 
-    reward_list = [[0], [0], [0]]
+    reward_list = [[0]*steps, [0]*steps, [0]*steps]
+    #optimal_list = []
+    #reward_exp = []
 
     # Loop over trials
     for t in trange(trials, desc="Trials"):
         # Reset environment and agents after every trial
         env.reset()
-
         reward_agent = []
+        #optimal_agent = []
+
         for agent in agents:
             agent.reset()
+            # TODO For each trial, perform specified number of steps for each type of agent
+            reward_step = []
+            #optimal_step = []
 
-        # TODO For each trial, perform specified number of steps for each type of agent
-            step_reward = []
             for i in range(steps):
-                action = ag.EpsilonGreedy.choose_action(agent)
+                action = agent.choose_action()
                 reward = env.step(action=action)
-                ag.EpsilonGreedy.update(self=agent, action=action, reward=reward)
-                step_reward.append(reward)
-            reward_agent.append(step_reward)
+                agent.update(action=action, reward=reward)
+                reward_step.append(reward)
+
+                #if action ==
+            reward_agent.append(reward_step)
             #print(reward_agent)
 
         #print("reward_list: " + str(reward_list))
         #print("reward_agent: " + str(reward_agent))
         reward_list = np.add(reward_agent, reward_list)
-    print(reward_list)
-    #plt.figure(reward_list)
 
+    plt.xlabel('Steps')
+    plt.ylabel('Average reward')
+    plt.plot((reward_list[0] / trials), '-g', label='ε=0')
+    plt.plot((reward_list[1] / trials), '-r', label='ε=0.01')
+    plt.plot((reward_list[2] / trials), '-b', label='ε=0.1')
+    plt.legend()
+    plt.show()
 
 
 def q7(k: int, trials: int, steps: int):
@@ -126,7 +134,7 @@ def q7(k: int, trials: int, steps: int):
 def main():
     # TODO run code for all questions
     #q4(10, 2000)
-    q6(10, 2, 1)
+    q6(10, 2000, 1000)
 
 
 if __name__ == "__main__":

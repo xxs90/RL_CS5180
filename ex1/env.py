@@ -36,9 +36,12 @@ class BanditEnv:
             Standard deviation (spread or “width”) of the distribution. Must be non-negative.
             
             size: int or tuple of ints, optional
+            
+            - out
+            ndarray or scalar
         """
 
-    def step(self, action: int) -> Tuple[float, int]:
+    def step(self, action: int): #-> Tuple[float, int]:
         """Take one step in env (pull one arm) and observe reward
 
         Args:
