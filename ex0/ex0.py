@@ -4,7 +4,6 @@
     Prof: Robert Platt
     Date: September 14th, 2021
     Author: Guanang Su
-
 """
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1,6 +1,15 @@
+"""
+    CS 4180/5180 RL and SDM
+    Exercise 1: Multi-armed Bandits
+    Prof: Robert Platt
+    Date: September 22nd, 2021
+    Author: Guanang Su
+"""
+
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Optional, Sequence
+import random
 
 
 def argmax(arr: Sequence[float]) -> int:
@@ -13,7 +22,16 @@ def argmax(arr: Sequence[float]) -> int:
         arr: sequence of values
     """
     # TODO
-    pass
+    index_list = np.argwhere(arr == np.amax(arr))
+    index = random.choice(index_list)
+    # if index == 6:
+    #     print("Y1")
+    # elif index == 8:
+    #     print("Y2")
+    # else:
+    #     print("N")
+
+    return index
 
 
 class BanditAgent(ABC):
@@ -81,10 +99,15 @@ class EpsilonGreedy(BanditAgent):
     def choose_action(self):
         """Choose which arm to pull
 
-        With probability 1 - epsilon, choose the best action (break ties arbitrarily, use argmax() from above). With probability epsilon, choose a random action.
+        With probability 1 - epsilon, choose the best action (break ties arbitrarily, use argmax() from above).
+        With probability epsilon, choose a random action.
         """
         # TODO
-        action = None
+        random_number = np.random.random()
+        if random_number < self.epsilon:
+            action = random.choice(range(0, self.k))
+        else:
+            action = argmax(self.Q)
         return action
 
     def update(self, action: int, reward: float) -> None:
@@ -97,14 +120,15 @@ class EpsilonGreedy(BanditAgent):
         self.t += 1
 
         # TODO update self.N
+        self.N[action] += 1
 
         # TODO update self.Q
         # If step_size is given (static step size)
         if self.step_size is not None:
-            pass
+            self.Q[action] += self.step_size * (reward - self.Q[action])
         # If step_size is dynamic (step_size = 1 / N(a))
         else:
-            pass
+            self.Q[action] += 1 / self.N[action] * (reward - self.Q[action])
 
 
 class UCB(BanditAgent):
@@ -123,10 +147,11 @@ class UCB(BanditAgent):
     def choose_action(self):
         """Choose which arm to pull
 
-        Use UCB action selection. Be sure to consider the case when N_t = 0 and break ties randomly (use argmax() from above)
+        Use UCB action selection. Be sure to consider the case when N_t = 0 and break ties randomly
+        (use argmax() from above)
         """
         # TODO
-        action = None
+        action = argmax(self.Q + self.c * np.sqrt(np.ln(self.t) / self.N))
         return action
 
     def update(self, action: int, reward: float) -> None:
@@ -139,5 +164,10 @@ class UCB(BanditAgent):
         self.t += 1
 
         # TODO update self.N
-
+        self.N[action] += 1
         # TODO update self.Q
+        if self.step_size is not None:
+            self.Q[action] += self.step_size * (reward - self.Q[action])
+        else:
+            self.Q[action] += 1 / self.N[action] * (reward - self.Q[action])
+        #
