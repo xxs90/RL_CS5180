@@ -42,9 +42,10 @@ def q4(k: int, num_samples: int):
         reward_list.append(rewards)
 
     #print(reward_list)
-    plt.xlabel("Action")
-    plt.ylabel("Reward distribution")
-    plt.violinplot(dataset=reward_list)
+    plt.xlabel('Action')
+    plt.ylabel('Reward distribution')
+    plt.violinplot(dataset=reward_list, showmeans=True, showmedians=True)
+    plt.axhline(y=0, linestyle='dashed')
 
     plt.show()
 
@@ -65,22 +66,21 @@ def q6(k: int, trials: int, steps: int):
               ag.EpsilonGreedy(k=k, init=0, epsilon=0.01),
               ag.EpsilonGreedy(k=k, init=0, epsilon=0.1)]
 
-    reward_list = [[0]*steps, [0]*steps, [0]*steps]
-    #optimal_list = []
-    #reward_exp = []
-
     # Loop over trials
+    reward_average = []
+    action_optimal = []
     for t in trange(trials, desc="Trials"):
         # Reset environment and agents after every trial
         env.reset()
+        optimal = np.argmax(env.means)
         reward_agent = []
-        #optimal_agent = []
+        action_agent = []
 
         for agent in agents:
             agent.reset()
             # TODO For each trial, perform specified number of steps for each type of agent
             reward_step = []
-            #optimal_step = []
+            action_step = []
 
             for i in range(steps):
                 action = agent.choose_action()
@@ -88,20 +88,44 @@ def q6(k: int, trials: int, steps: int):
                 agent.update(action=action, reward=reward)
                 reward_step.append(reward)
 
-                #if action ==
+                if action == optimal:
+                    action_step.append(1)
+                else:
+                    action_step.append(0)
+
             reward_agent.append(reward_step)
-            #print(reward_agent)
+            action_agent.append(action_step)
 
-        #print("reward_list: " + str(reward_list))
-        #print("reward_agent: " + str(reward_agent))
-        reward_list = np.add(reward_agent, reward_list)
+        reward_average.append(reward_agent)
+        action_optimal.append(action_agent)
 
+    average_reward = np.average(reward_average, axis=0)
+    average_action = np.average(action_optimal, axis=0)
+    standard_error = np.std(reward_average, axis=0)
+    error = 1.96 * standard_error / np.sqrt(trials)
+    upper_bound = [np.amax(average_reward)] * steps
+
+    plt.figure(0)
     plt.xlabel('Steps')
     plt.ylabel('Average reward')
-    plt.plot((reward_list[0] / trials), '-g', label='ε=0')
-    plt.plot((reward_list[1] / trials), '-r', label='ε=0.01')
-    plt.plot((reward_list[2] / trials), '-b', label='ε=0.1')
+    plt.plot(upper_bound, '--', linewidth=1.0)
+    x = np.arange(steps)
+    plt.plot(average_reward[0], 'C2', linewidth=0.6, label='ε=0 (greedy)')
+    plt.fill_between(x, (average_reward[0]-error[0]), (average_reward[0]+error[0]), color='C2', alpha=0.3)
+    plt.plot(average_reward[1], 'C1', linewidth=0.6, label='ε=0.01')
+    plt.fill_between(x, (average_reward[1] - error[1]), (average_reward[1] + error[1]), color='C1', alpha=0.3)
+    plt.plot(average_reward[2], 'C0', linewidth=0.6, label='ε=0.1')
+    plt.fill_between(x, (average_reward[2] - error[2]), (average_reward[2] + error[2]), color='C0', alpha=0.3)
     plt.legend()
+
+    plt.figure(1)
+    plt.xlabel('Steps')
+    plt.ylabel('Optimal Action %')
+    plt.plot(average_action[0], 'C2', linewidth=0.6, label='ε=0 (greedy)')
+    plt.plot(average_action[1], 'C1', linewidth=0.6, label='ε=0.01')
+    plt.plot(average_action[2], 'C0', linewidth=0.6, label='ε=0.1')
+    plt.legend()
+
     plt.show()
 
 
@@ -116,25 +140,86 @@ def q7(k: int, trials: int, steps: int):
         steps (int): total number of steps for each trial
     """
     # TODO initialize env and agents here
-    env = None
-    agents = []
+    env = BanditEnv(k=k)
+    agents = [ag.EpsilonGreedy(k=k, init=0, epsilon=0, step_size=0.1),
+              ag.EpsilonGreedy(k=k, init=5, epsilon=0, step_size=0.1),
+              ag.EpsilonGreedy(k=k, init=0, epsilon=0.1, step_size=0.1),
+              ag.EpsilonGreedy(k=k, init=5, epsilon=0.1, step_size=0.1),
+              ag.UCB(k=k, init=0, c=2, step_size=0.1)]
 
     # Loop over trials
+    reward_average = []
+    action_optimal = []
     for t in trange(trials, desc="Trials"):
         # Reset environment and agents after every trial
         env.reset()
+        optimal = np.argmax(env.means)
+        reward_agent = []
+        action_agent = []
         for agent in agents:
             agent.reset()
+            # TODO For each trial, perform specified number of steps for each type of agent
+            reward_step = []
+            action_step = []
 
-        # TODO For each trial, perform specified number of steps for each type of agent
+            for i in range(steps):
+                action = agent.choose_action()
+                reward = env.step(action=action)
+                agent.update(action=action, reward=reward)
+                reward_step.append(reward)
 
-    pass
+                if action == optimal:
+                    action_step.append(1)
+                else:
+                    action_step.append(0)
+
+            reward_agent.append(reward_step)
+            action_agent.append(action_step)
+
+        reward_average.append(reward_agent)
+        action_optimal.append(action_agent)
+
+    average_reward = np.average(reward_average, axis=0)
+    average_action = np.average(action_optimal, axis=0)
+    standard_error = np.std(reward_average, axis=0)
+    error = 1.96 * standard_error / np.sqrt(trials)
+    upper_bound = [np.amax(average_reward)] * steps
+
+    plt.figure(0)
+    plt.xlabel('Steps')
+    plt.ylabel('Average reward')
+    plt.plot(upper_bound, 'k--', linewidth=1.0)
+    x = np.arange(steps)
+    plt.plot(average_reward[0], linewidth=0.6, label='ε-greedy(Q1=0, ε=0)')
+    plt.fill_between(x, (average_reward[0] - error[0]), (average_reward[0] + error[0]), alpha=0.3)
+    plt.plot(average_reward[1], linewidth=0.6, label='ε-greedy(Q1=5, ε=0)')
+    plt.fill_between(x, (average_reward[1] - error[1]), (average_reward[1] + error[1]), alpha=0.3)
+    plt.plot(average_reward[2], linewidth=0.6, label='ε-greedy(Q1=0, ε=0.1)')
+    plt.fill_between(x, (average_reward[2] - error[2]), (average_reward[2] + error[2]), alpha=0.3)
+    plt.plot(average_reward[3], linewidth=0.6, label='ε-greedy(Q1=5, ε=0.1)')
+    plt.fill_between(x, (average_reward[3] - error[3]), (average_reward[3] + error[3]), alpha=0.3)
+    plt.plot(average_reward[4], linewidth=0.6, label='UCB (c=2)')
+    plt.fill_between(x, (average_reward[4] - error[4]), (average_reward[4] + error[4]), alpha=0.3)
+    plt.legend()
+
+    plt.figure(1)
+    plt.xlabel('Steps')
+    plt.ylabel('Optimal Action %')
+    plt.plot(average_action[0], linewidth=0.6, label='ε-greedy(Q1=0, ε=0)')
+    plt.plot(average_action[1], linewidth=0.6, label='ε-greedy(Q1=5, ε=0)')
+    plt.plot(average_action[2], linewidth=0.6, label='ε-greedy(Q1=0, ε=0.1)')
+    plt.plot(average_action[3], linewidth=0.6, label='ε-greedy(Q1=5, ε=0.1)')
+    plt.plot(average_action[4], linewidth=0.6, label='UCB (c=2)')
+    plt.legend()
+
+    plt.show()
 
 
 def main():
     # TODO run code for all questions
-    #q4(10, 2000)
-    q6(10, 2000, 1000)
+    q4(10, 2000)
+    #q6(10, 2000, 1000)
+    #q7(10, 2000, 1000)
 
 
 if __name__ == "__main__":

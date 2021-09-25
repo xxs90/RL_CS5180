@@ -152,9 +152,10 @@ class UCB(BanditAgent):
         """
         # TODO
         if 0 in self.N:
-            action = argmax(self.Q)
+            index_list = np.argwhere(self.Q == 0)
+            action = random.choice(index_list)
         else:
-            action = argmax(self.Q + self.c * np.sqrt(np.ln(self.t) / self.N))
+            action = argmax(self.Q + self.c * np.sqrt(np.log(self.t) / self.N))
         return action
 
     def update(self, action: int, reward: float) -> None:
@@ -169,8 +170,4 @@ class UCB(BanditAgent):
         # TODO update self.N
         self.N[action] += 1
         # TODO update self.Q
-        if self.step_size is not None:
-            self.Q[action] += self.step_size * (reward - self.Q[action])
-        else:
-            self.Q[action] += 1 / self.N[action] * (reward - self.Q[action])
-        #
+        self.Q[action] += self.step_size * (reward - self.Q[action])
