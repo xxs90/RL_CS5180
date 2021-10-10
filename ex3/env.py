@@ -1,3 +1,11 @@
+"""
+    CS 4180/5180 RL and SDM
+    Exercise 3: Dynamic Programming
+    Prof: Robert Platt
+    Date: October 7th, 2021
+    Author: Guanang Su
+"""
+
 from scipy.stats import poisson
 import numpy as np
 from enum import IntEnum
@@ -47,12 +55,12 @@ class Gridworld5x5:
         self.action_space = len(Action)
 
         # TODO set the locations of A and B, the next locations, and their rewards
-        self.A = None
-        self.A_prime = None
-        self.A_reward = None
-        self.B = None
-        self.B_prime = None
-        self.B_reward = None
+        self.A = (1, 4)
+        self.A_prime = (1, 0)
+        self.A_reward = +10
+        self.B = (3, 4)
+        self.B_prime = (3, 2)
+        self.B_reward = +5
 
     def transitions(
         self, state: Tuple, action: Action
@@ -71,11 +79,26 @@ class Gridworld5x5:
             reward: float
         """
 
-        next_state = None
-        reward = None
-
-        # TODO Check if current state is A and B and return the next state and corresponding reward
+        # TODO
+        # Check if current state is A and B and return the next state and corresponding reward
         # Else, check if the next step is within boundaries and return next state and reward
+        if state == self.A:
+            next_state = self.A_prime
+            reward = self.A_reward
+
+        elif state == self.B:
+            next_state = self.B_prime
+            reward = self.B_reward
+
+        else:
+            next_state = state + actions_to_dxdy(action)
+            if next_state in self.state_space:
+                reward = 0
+            # reward -1 when get off the grid
+            else:
+                next_state = state
+                reward = -1
+
         return next_state, reward
 
     def expected_return(
@@ -95,7 +118,7 @@ class Gridworld5x5:
 
         next_state, reward = self.transitions(state, action)
         # TODO compute the expected return
-        ret = None
+        ret = N
 
         return ret
 
