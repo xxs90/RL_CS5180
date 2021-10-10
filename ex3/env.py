@@ -10,6 +10,7 @@ from scipy.stats import poisson
 import numpy as np
 from enum import IntEnum
 from typing import Tuple
+import algorithms as ag
 
 
 class Action(IntEnum):
@@ -118,6 +119,13 @@ class Gridworld5x5:
 
         next_state, reward = self.transitions(state, action)
         # TODO compute the expected return
+        theta = 10**(-3)
+        optimal_value = np.zeros(shape=(5, 5))
+        optimal_policies = np.empty(shape=(5, 5), dtype=str)
+
+        optimal_value = ag.valueIteration(optimal_policies, theta, optimal_value, state, next_state, reward)
+        optimal_policies = ag.valueIteration(optimal_policies, theta, optimal_value, state, next_state, reward)
+
         ret = N
 
         return ret
