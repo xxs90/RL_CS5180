@@ -126,7 +126,7 @@ class Gridworld5x5:
         optimal_value = ag.valueIteration(optimal_policies, theta, optimal_value, state, next_state, reward)
         optimal_policies = ag.valueIteration(optimal_policies, theta, optimal_value, state, next_state, reward)
 
-        ret = N
+        ret = 0
 
         return ret
 
@@ -315,11 +315,9 @@ class JacksCarRental:
         """
         # TODO
         probs = None
+
         return probs
 
-        # TODO Check if current state is A and B and return the next state and corresponding reward
-        # Else, check if the next step is within boundaries and return next state and reward
-        return next_state, reward
 
     def rewards(self, state, action) -> float:
         """Reward function r(s,a)

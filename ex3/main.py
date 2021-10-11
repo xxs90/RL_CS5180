@@ -5,12 +5,15 @@
     Date: October 9th, 2021
     Author: Guanang Su
 """
-
-from env import Gridworld5x5 as gw
+import numpy as np
+import env
 import algorithms as ag
 
 def gridWorld():
-
+    V = np.zeros(shape=(5, 5), dtype=float)
+    S = np.empty(shape=(5, 5), dtype=str)
+    V = ag.iterativePolicyEvaluation(V, S, 0.00001, 0.9)
+    print(V)
 
 #def carRental():
 
