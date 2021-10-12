@@ -14,7 +14,7 @@ def iterative_policy_evaluation(environment, V, theta, gamma):
         delta = 0
 
         for state in environment.state_space:
-            v = V[s]
+            v = V[state]
             state_value = 0
 
             for action in env.Action:
