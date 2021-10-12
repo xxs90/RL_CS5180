@@ -300,15 +300,8 @@ class JacksCarRental:
         probs = None
         return probs
 
-        # TODO Check if current state is A and B and return the next state and corresponding reward
+        # TODO
+        # Check if current state is A and B and return the next state and corresponding reward
         # Else, check if the next step is within boundaries and return next state and reward
         return next_state, reward
 
-
-def get_state_space():
-    S = []
-    # Create state space
-    for x in range(5):
-        for y in range(5):
-            S.append((x, y))
-    return S
