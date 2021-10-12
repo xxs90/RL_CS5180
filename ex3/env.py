@@ -55,7 +55,7 @@ class Gridworld5x5:
         self.B_reward = +5
 
     def transitions(
-        self, state: Tuple, action: Action
+            self, state: Tuple, action: Action
     ) -> Tuple[Tuple[int, int], float]:
         """Get transitions from given (state, action) pair.
 
@@ -94,7 +94,7 @@ class Gridworld5x5:
         return next_state, reward
 
     def expected_return(
-        self, V, state: Tuple[int, int], action: Action, gamma: float
+            self, V, state: Tuple[int, int], action: Action, gamma: float
     ) -> float:
         """Compute the expected_return for all transitions from the (s,a) pair, i.e. do a 1-step Bellman backup.
 
@@ -260,13 +260,12 @@ class JacksCarRental:
                         # Loop over all combinations of locA_ and locB_
                         for locA_ in range(self.max_cars_end + 1):
                             for locB_ in range(self.max_cars_end + 1):
-
                                 # TODO Calculate transition probabilities
                                 # Use the probabilities computed from open_to_close
                                 self.t[locA, locB, ia, locA_, locB_] = None
 
     def expected_return(
-        self, V, state: Tuple[int, int], action: Action, gamma: float
+            self, V, state: Tuple[int, int], action: Action, gamma: float
     ) -> float:
         """Compute the expected_return for all transitions from the (s,a) pair, i.e. do a 1-step Bellman backup.
 
@@ -305,14 +304,11 @@ class JacksCarRental:
         # Else, check if the next step is within boundaries and return next state and reward
         return next_state, reward
 
-    def rewards(self, state, action) -> float:
-        """Reward function r(s,a)
 
-        Args:
-            state (Tuple): state
-            action (Action): action
-        Returns:
-            reward: float
-        """
-        # TODO
-        pass
+def get_state_space():
+    S = []
+    # Create state space
+    for x in range(5):
+        for y in range(5):
+            S.append((x, y))
+    return S
