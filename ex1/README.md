@@ -23,5 +23,5 @@ Fill in the sections marked with `TODO`. The docstrings for each function should
 ## Run the code
 
 ```bash
-python main.py
+python problem5main.py
 ```

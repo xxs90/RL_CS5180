@@ -1,16 +1,7 @@
-"""
-    CS 4180/5180 RL and SDM
-    Exercise 3: Dynamic Programming
-    Prof: Robert Platt
-    Date: October 7th, 2021
-    Author: Guanang Su
-"""
-
 from scipy.stats import poisson
 import numpy as np
 from enum import IntEnum
 from typing import Tuple
-import algorithms as ag
 
 
 class Action(IntEnum):
@@ -56,11 +47,11 @@ class Gridworld5x5:
         self.action_space = len(Action)
 
         # TODO set the locations of A and B, the next locations, and their rewards
-        self.A = (1, 4)
-        self.A_prime = (1, 0)
+        self.A = (0, 1)
+        self.A_prime = (4, 1)
         self.A_reward = +10
-        self.B = (3, 4)
-        self.B_prime = (3, 2)
+        self.B = (0, 3)
+        self.B_prime = (2, 3)
         self.B_reward = +5
 
     def transitions(
@@ -92,7 +83,7 @@ class Gridworld5x5:
             reward = self.B_reward
 
         else:
-            next_state = state + actions_to_dxdy(action)
+            next_state = tuple(map(sum, zip(state, actions_to_dxdy(action))))
             if next_state in self.state_space:
                 reward = 0
             # reward -1 when get off the grid
@@ -119,14 +110,7 @@ class Gridworld5x5:
 
         next_state, reward = self.transitions(state, action)
         # TODO compute the expected return
-        theta = 10**(-3)
-        optimal_value = np.zeros(shape=(5, 5))
-        optimal_policies = np.empty(shape=(5, 5), dtype=str)
-
-        optimal_value = ag.valueIteration(optimal_policies, theta, optimal_value, state, next_state, reward)
-        optimal_policies = ag.valueIteration(optimal_policies, theta, optimal_value, state, next_state, reward)
-
-        ret = N
+        ret = None
 
         return ret
 
