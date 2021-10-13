@@ -1,3 +1,11 @@
+"""
+    CS 4180/5180 RL and SDM
+    Exercise 3: Dynamic Programming
+    Prof: Robert Platt
+    Date: October 7th, 2021
+    Author: Guanang Su
+"""
+
 from scipy.stats import poisson
 import numpy as np
 from enum import IntEnum
@@ -47,10 +55,10 @@ class Gridworld5x5:
         self.action_space = len(Action)
 
         # TODO set the locations of A and B, the next locations, and their rewards
-        self.A = (0, 1)
-        self.A_prime = (4, 1)
+        self.A = (4, 1)
+        self.A_prime = (0, 1)
         self.A_reward = +10
-        self.B = (0, 3)
+        self.B = (4, 3)
         self.B_prime = (2, 3)
         self.B_reward = +5
 
@@ -300,8 +308,15 @@ class JacksCarRental:
         probs = None
         return probs
 
-        # TODO
-        # Check if current state is A and B and return the next state and corresponding reward
+        # TODO Check if current state is A and B and return the next state and corresponding reward
         # Else, check if the next step is within boundaries and return next state and reward
         return next_state, reward
 
+
+def get_state_space():
+    S = []
+    # Create state space
+    for x in range(5):
+        for y in range(5):
+            S.append((x, y))
+    return S

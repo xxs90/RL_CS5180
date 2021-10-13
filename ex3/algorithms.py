@@ -6,23 +6,25 @@
     Author: Guanang Su
 """
 
-import env
+import problem5env as env
+import numpy as np
+import random
 
 
 def iterative_policy_evaluation(environment, V, theta, gamma):
     while True:
         delta = 0
 
-        for state in environment.state_space:
-            v = V[state]
+        for s in environment.state_space:
+            v = V[s]
             state_value = 0
 
-            for action in env.Action:
-                s_prime, reward = environment.transitions(state, action)
+            for a in env.Action:
+                s_prime, reward = environment.transitions(s, a)
                 state_value += 0.25 * (reward + gamma * V[s_prime])
 
-            V[state] = state_value
-            delta = max(delta, abs(v - V[state]))
+            V[s] = state_value
+            delta = max(delta, abs(v - V[s]))
 
         if delta < theta:
             break
@@ -79,22 +81,47 @@ def value_iteration(environment, V, theta, gamma):
     return V, policy
 
 
-def policy_iteration(environment, V, Q, theta, gamma):
+def policy_evaluation(environment, V, pi, gamma, theta):
+
     while True:
         delta = 0
+
         for state in environment.state_space:
             v = V[state]
-            value_list = []
 
-            for action in env.Action:
-                s_prime, reward = environment.transitions(state, action)
-                value_list.append(reward + gamma * V[s_prime])
+            s_prime, reward = environment.transitions(state, pi[state])
+            state_value = reward + gamma * V[s_prime]
 
-            V[state] = max(value_list)
+            V[state] = state_value
             delta = max(delta, abs(v - V[state]))
-            # print(delta)
 
         if delta < theta:
             break
+    return V
+
+
+def policy_iteration(environment, V, theta, gamma):
+    pi = np.zeros(shape=(5, 5), dtype=float)
+    policy_evaluation(environment, V, pi, gamma, theta)
+    policy_stable = True
+
+    while policy_stable:
+        for state in environment.state_space:
+            old_action = pi[state]
+            state_value = []
+
+            for action in env.Action:
+                s_prime, reward = environment.transitions(state, action)
+                value = reward + gamma * V[s_prime]
+                state_value.append(value)
+            pi[state] = np.argmax(state_value)
+
+            if old_action != pi[state]:
+                policy_stable = False
+
+        if policy_stable:
+            break
+        else:
+            policy_evaluation(environment, V, pi, gamma, theta)
 
     return V, pi

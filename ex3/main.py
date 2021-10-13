@@ -6,9 +6,9 @@
     Author: Guanang Su
 """
 
-import algorithms as ag
+import problem5algorithm as ag
 import numpy as np
-import env
+import problem5env as env
 
 
 def grid_world(theta, gamma):
@@ -19,7 +19,7 @@ def grid_world(theta, gamma):
 
     if str1 == 'a':
         V = ag.iterative_policy_evaluation(grid, V, theta, gamma)
-        print(np.round(V, 1))
+        print(np.round(V[::-1], 1))
 
     elif str1 == 'b':
         optimal_value, optimal_policy = ag.value_iteration(grid, V, theta, gamma)
@@ -29,15 +29,27 @@ def grid_world(theta, gamma):
             for j in range(5):
                 optimal_action[i][j] = optimal_policy((i, j))
 
-        print(np.around(optimal_value, 1))
-        print(*optimal_action, sep='\n')
+        print(np.around(optimal_value[::-1], 1))
+        print(*optimal_action[::-1], sep='\n')
 
     elif str1 == 'c':
-        Q = np.zeros(shape=(5, 5), dtype=str)
-        optimal_value, optimal_policy = ag.policy_iteration(grid, V, Q, theta, gamma)
+        V, pi = ag.policy_iteration(grid, V, theta, gamma)
+        pi = pi[::-1]
+        policy_list = []
 
-        print(np.around(optimal_value, 1))
-        print(*optimal_policy, sep='\n')
+        for i in range(5):
+            for j in range(5):
+                if pi[i][j] == 0:
+                    optimal_policy = '\u2193'
+                elif pi[i][j] == 1:
+                    optimal_policy = '\u2190'
+                elif pi[i][j] == 2:
+                    optimal_policy = '\u2191'
+                else:
+                    optimal_policy = '\u2192'
+                policy_list.append(optimal_policy)
+        print(np.round(V[::-1], 1))
+        print(np.array(policy_list).reshape(5, 5), sep='\n')
 
 
 def carRental():
