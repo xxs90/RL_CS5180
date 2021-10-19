@@ -34,6 +34,7 @@ def generate_episode(env: gym.Env, policy: Callable, es: bool = False):
 
 
 def on_policy_mc_evaluation(
+
     env: gym.Env,
     policy: Callable,
     num_episodes: int,
@@ -61,7 +62,13 @@ def on_policy_mc_evaluation(
         for t in range(len(episode) - 1, -1, -1):
             # TODO Q3a
             # Update V and N here according to first visit MC
-            pass
+            G = gamma * G + episode[t][2]
+            state = episode[t][0]
+            episode_list = np.array(episode, dtype=object).reshape(-1, 3)[:t, 0]
+            if state not in episode_list:
+                N[state] += 1
+                V[state] += (G-V[state])/N[state]
+
     return V
 
 
@@ -87,7 +94,17 @@ def on_policy_mc_control_es(
         # TODO Q3b
         # Note there is no need to update the policy here directly.
         # By updating Q, the policy will automatically be updated.
-        pass
+        episode = generate_episode(env, policy, True)
+        G = 0
+
+        for t in range(len(episode) - 1, -1, -1):
+            G = gamma * G + episode[t][2]
+            state = episode[t][0]
+            action = episode[t][1]
+            episode_list = np.array(episode, dtype=object).reshape(-1, 3)[:t, 0]
+            if state not in episode_list:
+                N[state][action] += 1
+                Q[state][action] += (G - Q[state][action]) / N[state][action]
 
     return Q, policy
 

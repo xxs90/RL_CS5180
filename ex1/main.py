@@ -217,8 +217,8 @@ def q7(k: int, trials: int, steps: int):
 
 def main():
     # TODO run code for all questions
-    q4(10, 2000)
-    #q6(10, 2000, 1000)
+    #q4(10, 2000)
+    q6(10, 2000, 1000)
     #q7(10, 2000, 1000)
 
 

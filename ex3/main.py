@@ -6,9 +6,9 @@
     Author: Guanang Su
 """
 
-import problem5algorithm as ag
+import algorithms as ag
 import numpy as np
-import problem5env as env
+import env as env
 
 
 def grid_world(theta, gamma):

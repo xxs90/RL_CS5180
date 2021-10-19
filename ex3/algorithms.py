@@ -6,9 +6,8 @@
     Author: Guanang Su
 """
 
-import problem5env as env
+import env as env
 import numpy as np
-import random
 
 
 def iterative_policy_evaluation(environment, V, theta, gamma):
