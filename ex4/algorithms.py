@@ -1,3 +1,11 @@
+"""
+    CS 4180/5180 RL and SDM
+    Exercise 4: Monte-Carlo Methods
+    Prof: Robert Platt
+    Date: October 16th, 2021
+    Author: Guanang Su
+"""
+
 import gym
 from typing import Callable, Tuple
 from collections import defaultdict
@@ -57,15 +65,18 @@ def on_policy_mc_evaluation(
 
     for _ in trange(num_episodes, desc="Episode"):
         episode = generate_episode(env, policy)
-
         G = 0
+        episode_list = []
+
         for t in range(len(episode) - 1, -1, -1):
             # TODO Q3a
             # Update V and N here according to first visit MC
             G = gamma * G + episode[t][2]
             state = episode[t][0]
-            episode_list = np.array(episode, dtype=object).reshape(-1, 3)[:t, 0]
+            #episode_list = np.array(episode, dtype=object).reshape(-1, 3)[:t, 0]
+
             if state not in episode_list:
+                episode_list.append(state)
                 N[state] += 1
                 V[state] += (G-V[state])/N[state]
 
@@ -96,13 +107,14 @@ def on_policy_mc_control_es(
         # By updating Q, the policy will automatically be updated.
         episode = generate_episode(env, policy, True)
         G = 0
+        episode_list = []
 
         for t in range(len(episode) - 1, -1, -1):
-            G = gamma * G + episode[t][2]
-            state = episode[t][0]
-            action = episode[t][1]
-            episode_list = np.array(episode, dtype=object).reshape(-1, 3)[:t, 0]
+            state, action, reward = episode[t]
+            G = gamma * G + reward
+
             if state not in episode_list:
+                episode_list.append(state)
                 N[state][action] += 1
                 Q[state][action] += (G - Q[state][action]) / N[state][action]
 
@@ -123,16 +135,32 @@ def on_policy_mc_control_epsilon_soft(
 
     """
     Q = defaultdict(lambda: np.zeros(env.action_space.n))
+    N = defaultdict(lambda: np.zeros(env.action_space.n))
 
     policy = create_epsilon_policy(Q, epsilon)
-
     returns = np.zeros(num_episodes)
-    for _ in trange(num_episodes, desc="Episode", leave=False):
+    #total_reward = 0
+
+    for i in trange(num_episodes, desc="Episode", leave=False):
         # TODO Q4
         # For each episode calculate the return
         # Update Q
         # Note there is no need to update the policy here directly.
         # By updating Q, the policy will automatically be updated.
-        pass
+        episode = generate_episode(env, policy)
+        G = 0
+        episode_list = []
+
+        for t in range(len(episode) - 1, -1, -1):
+            state, action, reward = episode[t]
+            G = gamma * G + reward
+            #total_reward += reward
+
+            if state not in episode_list:
+                episode_list.append(state)
+                N[state][action] += 1
+                Q[state][action] += (G - Q[state][action]) / N[state][action]
+
+        returns[i] = G #= total_reward / (i + 1)
 
     return returns

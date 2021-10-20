@@ -1,3 +1,11 @@
+"""
+    CS 4180/5180 RL and SDM
+    Exercise 4: Monte-Carlo Methods
+    Prof: Robert Platt
+    Date: October 16th, 2021
+    Author: Guanang Su
+"""
+
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -47,6 +55,3 @@ def infinite_variance():
 
     plt.show()
 
-
-if __name__ == '__main__':
-    infinite_variance()

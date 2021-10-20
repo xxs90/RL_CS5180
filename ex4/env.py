@@ -1,8 +1,17 @@
+"""
+    CS 4180/5180 RL and SDM
+    Exercise 4: Monte-Carlo Methods
+    Prof: Robert Platt
+    Date: October 16th, 2021
+    Author: Guanang Su
+"""
+
 from enum import IntEnum
 from typing import Tuple, Optional, List
 from gym import Env, spaces
 from gym.utils import seeding
 from gym.envs.registration import register
+import random
 
 
 def register_env() -> None:
@@ -134,15 +143,36 @@ class FourRoomsEnv(Env):
 
         # TODO modify action_taken so that 10% of the time, the action_taken is perpendicular to action (there are 2 perpendicular actions for each action).
         # You can reuse your code from ex0
-        action_taken = action
+        random_number = random.randint(1, 10)
+        if random_number == 10:
+            action_taken = Action((action + 1) % 4)
+        elif random_number == 9:
+            action_taken = Action((action + 3) % 4)
+        else:
+            action_taken = action
 
         # TODO calculate the next position using actions_to_dxdy()
         # You can reuse your code from ex0
-        next_pos = None
+        next_pos = tuple(map(sum, zip(self.agent_pos, actions_to_dxdy(Action(action_taken)))))
+
+        boundaries = [
+            (-1, -1), (-1, 0), (-1, 1), (-1, 2), (-1, 3), (-1, 4),
+            (-1, 5), (-1, 6), (-1, 7), (-1, 8), (-1, 9), (-1, 10),
+            (11, 0), (11, 1), (11, 2), (11, 3), (11, 4), (11, 5),
+            (11, 6), (11, 7), (11, 8), (11, 9), (11, 10), (11, 11),
+            (0, -1), (1, -1), (2, -1), (3, -1), (4, -1), (5, -1),
+            (6, -1), (7, -1), (8, -1), (9, -1), (10, -1), (11, -1),
+            (-1, 11), (0, 11), (1, 11), (2, 11), (3, 11), (4, 11),
+            (5, 11), (6, 11), (7, 11), (8, 11), (9, 11), (10, 11),
+        ]
+        no_way = self.walls + boundaries
 
         # TODO check if next position is feasible
         # If the next position is a wall or out of bounds, stay at current position
         # Set self.agent_pos
+        if next_pos in no_way:
+            next_pos = self.agent_pos
+
         self.agent_pos = next_pos
 
         return self.agent_pos, reward, done, {}

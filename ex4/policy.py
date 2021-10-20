@@ -1,3 +1,13 @@
+"""
+    CS 4180/5180 RL and SDM
+    Exercise 4: Monte-Carlo Methods
+    Prof: Robert Platt
+    Date: October 16th, 2021
+    Author: Guanang Su
+"""
+
+import random
+
 import numpy as np
 from collections import defaultdict
 from typing import Callable, Tuple
@@ -59,9 +69,10 @@ def create_epsilon_policy(Q: defaultdict, epsilon: float) -> Callable:
         # You can reuse code from ex1
         # Make sure to break ties arbitrarily
         if np.random.random() < epsilon:
-            action = None
+            action = random.choice(range(0, num_actions))
         else:
-            action = None
+            #action = np.argmax(Q)
+            action = np.random.choice(np.where(Q[state] == Q[state].max())[0])
 
         return action
 
