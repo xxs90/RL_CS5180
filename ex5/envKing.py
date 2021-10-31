@@ -2,7 +2,7 @@
     CS 4180/5180 RL and SDM
     Exercise 5: Temporal_Difference Learning
     Prof: Robert Platt
-    Date: October 23rd, 2021
+    Date: October 28th, 2021
     Author: Guanang Su
 """
 
@@ -42,7 +42,7 @@ def register_env() -> None:
     Choose whichever method you like.
     """
     # TODO
-    register(id="WindyGridWorld-v0", entry_point="env:WindyGridWorldEnv")
+    register(id="WindyGridWorldKings-v0", entry_point="envKing:WindyGridWorldEnv")
 
 
 class Action(IntEnum):
@@ -52,6 +52,10 @@ class Action(IntEnum):
     DOWN = 1
     RIGHT = 2
     UP = 3
+    LEFT_UP = 4
+    RIGHT_UP = 5
+    LEFT_DOWN = 6
+    RIGHT_DOWN = 7
 
 
 def actions_to_dxdy(action: Action) -> Tuple[int, int]:
@@ -67,6 +71,10 @@ def actions_to_dxdy(action: Action) -> Tuple[int, int]:
         Action.DOWN: (0, -1),
         Action.RIGHT: (1, 0),
         Action.UP: (0, 1),
+        Action.LEFT_UP: (-1, 1),
+        Action.RIGHT_UP: (1, 1),
+        Action.LEFT_DOWN: (-1, -1),
+        Action.RIGHT_DOWN: (1, -1)
     }
     return mapping[action]
 
@@ -136,6 +144,7 @@ class WindyGridWorldEnv(Env):
         """
 
         # TODO
+        #1. check if goal state is reached
         if self.agent_pos == self.goal_pos:
             done = True
             reward = 0.0
@@ -167,4 +176,5 @@ class WindyGridWorldEnv(Env):
         self.agent_pos = next_pos
 
         #print(self.agent_pos)
+
         return self.agent_pos, reward, done, {}

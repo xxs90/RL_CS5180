@@ -5,48 +5,172 @@
     Date: October 23rd, 2021
     Author: Guanang Su
 """
-import numpy as np
 
+import numpy as np
 import env
+import envKing as envK
+import envKingNine as envKN
+import envStochastic as envS
 import gym
 import algorithms as ag
 from matplotlib import pyplot as plt
+from tqdm import trange
+
+
 def q4b():
-    #print('4b')
-    #n = 2000
     step_num = 8000
-    env = gym.make('WindyGridWorld-v0')
+    trails = 10
+    env.register_env()
+    env_b = gym.make('WindyGridWorld-v0')
 
-    data_1 = []
-    data_2 = []
-    for i in range(1):
-        #returns = ag.on_policy_mc_control_epsilon_soft(env=env, num_steps=step_num, gamma=1, epsilon=0.1)
-        returns_1 = ag.sarsa(env=env, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5)
-        returns_2 = ag.q_learning(env=env, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5)
-        data_1.append(returns_1)
-        data_2.append(returns_2)
+    return_average = []
 
-    #print(data)
-    #t = range(len(data))
-    #steps = np.average(data_2, axis=0)
+    for i in trange(trails, desc="Episode"):
+        return_agent = []
+        return_agent.append(ag.sarsa(env=env_b, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.exp_sarsa(env=env_b, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.q_learning(env=env_b, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.on_policy_mc_control_epsilon_soft(env=env_b, num_steps=step_num, gamma=1, epsilon=0.1))
+        return_agent.append(ag.nstep_sarsa(env=env_b, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+
+        return_average.append(return_agent)
+
+    average_return = np.average(return_average, axis=0)
+    standard_error = np.std(return_average, axis=0)
+    error = 1.96 * standard_error / np.sqrt(trails)
     plt.xlabel('Time steps')
     plt.ylabel('Episodes')
-    # plt.title('SARSA (on-policy TD control)')
-    #plt.title('Q-learning (off-policy TD control)')
-    plt.plot(np.average(data_1, axis=0), 'r', label='sarsa')
-    plt.plot(np.average(data_2, axis=0), 'b', label='q_learning')
+    plt.title('Windy gridworld')
+
+
+    x = np.arange(step_num)
+    plt.plot(average_return[0], label='sarsa')
+    plt.fill_between(x, (average_return[0] - error[0]), (average_return[0] + error[0]), alpha=0.3)
+    plt.plot(average_return[1], label='exp_sarsa')
+    plt.fill_between(x, (average_return[1] - error[1]), (average_return[1] + error[1]), alpha=0.3)
+    plt.plot(average_return[2], label='q_learning')
+    plt.fill_between(x, (average_return[2] - error[2]), (average_return[2] + error[2]), alpha=0.3)
+    plt.plot(average_return[3], label='mc_soft')
+    plt.fill_between(x, (average_return[3] - error[3]), (average_return[3] + error[3]), alpha=0.3)
+    plt.plot(average_return[4], label='n-step_sarsa')
+    plt.fill_between(x, (average_return[4] - error[4]), (average_return[4] + error[4]), alpha=0.3)
+
     plt.legend()
     plt.show()
 
-    #t = range(len(steps))
-
 
 def q4c():
-    print('4c')
+
+    step_num = 8000
+    trails = 10
+    envK.register_env()
+    env_c = gym.make('WindyGridWorldKings-v0')
+    envKN.register_env()
+    env_c2 = gym.make('WindyGridWorldKings2-v0')
+
+    return_average = []
+
+    for i in trange(trails, desc="Episode"):
+        return_agent = []
+        return_agent.append(ag.sarsa(env=env_c, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.exp_sarsa(env=env_c, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.q_learning(env=env_c, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.on_policy_mc_control_epsilon_soft(env=env_c, num_steps=step_num, gamma=1, epsilon=0.1))
+
+        return_average.append(return_agent)
+
+    average_return = np.average(return_average, axis=0)
+    standard_error = np.std(return_average, axis=0)
+    error = 1.96 * standard_error / np.sqrt(trails)
+
+    plt.figure(0)
+    plt.xlabel('Time steps')
+    plt.ylabel('Episodes')
+    plt.title('Windy gridworld with King\'s moves')
+
+    x = np.arange(step_num)
+    plt.plot(average_return[0], label='sarsa')
+    plt.fill_between(x, (average_return[0] - error[0]), (average_return[0] + error[0]), alpha=0.3)
+    plt.plot(average_return[1], label='exp_sarsa')
+    plt.fill_between(x, (average_return[1] - error[1]), (average_return[1] + error[1]), alpha=0.3)
+    plt.plot(average_return[2], label='q_learning')
+    plt.fill_between(x, (average_return[2] - error[2]), (average_return[2] + error[2]), alpha=0.3)
+    plt.plot(average_return[3], label='mc_soft')
+    plt.fill_between(x, (average_return[3] - error[3]), (average_return[3] + error[3]), alpha=0.3)
+    plt.legend()
+
+    return_average9 = []
+
+    for i in trange(trails, desc="Episode"):
+        return_agent9 = []
+        return_agent9.append(ag.sarsa(env=env_c2, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent9.append(ag.exp_sarsa(env=env_c2, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent9.append(ag.q_learning(env=env_c2, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent9.append(ag.on_policy_mc_control_epsilon_soft(env=env_c2, num_steps=step_num, gamma=1, epsilon=0.1))
+
+        return_average9.append(return_agent9)
+
+    average_return9 = np.average(return_average9, axis=0)
+    standard_error9 = np.std(return_average9, axis=0)
+    error9 = 1.96 * standard_error9 / np.sqrt(trails)
+
+    plt.figure(1)
+    plt.xlabel('Time steps')
+    plt.ylabel('Episodes')
+    plt.title('Windy gridworld with King\'s moves (with no movement)')
+
+    x = np.arange(step_num)
+    plt.plot(average_return9[0], label='sarsa')
+    plt.fill_between(x, (average_return9[0] - error9[0]), (average_return9[0] + error9[0]), alpha=0.3)
+    plt.plot(average_return9[1], label='exp_sarsa')
+    plt.fill_between(x, (average_return9[1] - error9[1]), (average_return9[1] + error9[1]), alpha=0.3)
+    plt.plot(average_return9[2], label='q_learning')
+    plt.fill_between(x, (average_return9[2] - error9[2]), (average_return9[2] + error9[2]), alpha=0.3)
+    plt.plot(average_return9[3], label='mc_soft')
+    plt.fill_between(x, (average_return9[3] - error9[3]), (average_return9[3] + error9[3]), alpha=0.3)
+    plt.legend()
+
+    plt.show()
 
 
 def q4d():
-    print('4d')
+    step_num = 8000
+    trails = 10
+    envS.register_env()
+    env_d = gym.make('WindyGridWorldSto-v0')
+
+    return_average = []
+
+    for i in trange(trails, desc="Episode"):
+        return_agent = []
+        return_agent.append(ag.sarsa(env=env_d, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.exp_sarsa(env=env_d, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.q_learning(env=env_d, num_steps=step_num, gamma=1, epsilon=0.1, step_size=0.5))
+        return_agent.append(ag.on_policy_mc_control_epsilon_soft(env=env_d, num_steps=step_num, gamma=1, epsilon=0.1))
+
+        return_average.append(return_agent)
+
+    average_return = np.average(return_average, axis=0)
+    standard_error = np.std(return_average, axis=0)
+    error = 1.96 * standard_error / np.sqrt(trails)
+
+    plt.figure(1)
+    plt.xlabel('Time steps')
+    plt.ylabel('Episodes')
+    plt.title('Windy gridworld with stochastic wind')
+
+    x = np.arange(step_num)
+    plt.plot(average_return[0], label='sarsa')
+    plt.fill_between(x, (average_return[0] - error[0]), (average_return[0] + error[0]), alpha=0.3)
+    plt.plot(average_return[1], label='exp_sarsa')
+    plt.fill_between(x, (average_return[1] - error[1]), (average_return[1] + error[1]), alpha=0.3)
+    plt.plot(average_return[2], label='q_learning')
+    plt.fill_between(x, (average_return[2] - error[2]), (average_return[2] + error[2]), alpha=0.3)
+    plt.plot(average_return[3], label='mc_soft')
+    plt.fill_between(x, (average_return[3] - error[3]), (average_return[3] + error[3]), alpha=0.3)
+    plt.legend()
+
+    plt.show()
 
 
 def q5():
@@ -55,14 +179,11 @@ def q5():
 
 def main():
     print('\nWhich question do you want to run? (4: windy gridworld, 5: bias-variance trade-off)')
-    str0 = input('(4: "b": method compare, "c": king\'s move, "d": stochastic wind and "5" ): ')
-    env.register_env()
-    if str0 == 'b':
+    str0 = input('("4" and "5" ): ')
+    if str0 == '4':
         q4b()
-    elif str0 == 'c':
-        q4c()
-    elif str0 == 'd':
-        q4d()
+        #q4c()
+        #q4d()
     elif str0 == '5':
         q5()
     else:

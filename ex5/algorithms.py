@@ -12,21 +12,21 @@ from collections import defaultdict
 import numpy as np
 import random
 from typing import Callable, Tuple
-from tqdm import trange
-import env as env0
 
 
-def generate_episode(env: gym.Env, policy: Callable, es: bool = False):
+def generate_episode(env: gym.Env, policy: Callable, es: bool = False, limit: int = 8000):
     """A function to generate one episode and collect the sequence of (s, a, r) tuples
     This function will be useful for implementing the MC methods
     Args:
+        limit:
         env (gym.Env): a Gym API compatible environment
         policy (Callable): A function that represents the policy.
         es (bool): Whether to use exploring starts or not
     """
     episode = []
     state = env.reset()
-    while True:
+    i = 0
+    while i < limit:
         if es and len(episode) == 0:
             action = env.action_space.sample()
         else:
@@ -37,8 +37,9 @@ def generate_episode(env: gym.Env, policy: Callable, es: bool = False):
         if done:
             break
         state = next_state
+        i += 1
 
-    return episode
+    return episode, done
 
 
 def create_epsilon_policy(Q: defaultdict, epsilon: float) -> Callable:
@@ -63,12 +64,11 @@ def create_epsilon_policy(Q: defaultdict, epsilon: float) -> Callable:
 
         return action
 
-    print(get_action)
     return get_action
 
 
 def on_policy_mc_control_epsilon_soft(
-    env: gym.Env, num_steps: int, gamma: float, epsilon: float,
+        env: gym.Env, num_steps: int, gamma: float, epsilon: float,
 ):
     """On-policy Monte Carlo policy control for epsilon soft policies.
 
@@ -80,29 +80,36 @@ def on_policy_mc_control_epsilon_soft(
     Returns:
 
     """
-    # Q = defaultdict(lambda: np.zeros(env.action_space.n))
-    # N = defaultdict(lambda: np.zeros(env.action_space.n))
-    #
-    # policy = create_epsilon_policy(Q, epsilon)
-    # returns = np.zeros(num_steps)
-    #
-    # for i in trange(num_steps, desc="Episode", leave=False):
-    #     episode = generate_episode(env, policy)
-    #     G = 0
-    #     episode_list = []
-    #
-    #     for t in range(len(episode) - 1, -1, -1):
-    #         state, action, reward = episode[t]
-    #         G = gamma * G + reward
-    #
-    #         if state not in episode_list:
-    #             episode_list.append(state)
-    #             N[state][action] += 1
-    #             Q[state][action] += (G - Q[state][action]) / N[state][action]
-    #
-    #     returns[i] = G
-    #
-    # return returns
+    Q = defaultdict(lambda: np.zeros(env.action_space.n))
+    N = defaultdict(lambda: np.zeros(env.action_space.n))
+
+    policy = create_epsilon_policy(Q, epsilon)
+    state_list = []
+    episode_list = np.zeros(num_steps)
+
+    count = 0.0
+    n = 0
+
+    while n < num_steps:
+        episode, done = generate_episode(env, policy)
+        G = 0
+        i = n
+        if done:
+            count += 1.0
+        n += len(episode)
+        episode_list[i:n] = count
+
+        for t in range(len(episode) - 1, -1, -1):
+            state, action, reward = episode[t]
+            G = gamma * G + reward
+
+            if state not in state_list:
+                state_list.append(state)
+                N[state][action] += 1
+                Q[state][action] += (G - Q[state][action]) / N[state][action]
+
+    #print(episode_list)
+    return episode_list
 
 
 def sarsa(env: gym.Env, num_steps: int, gamma: float, epsilon: float, step_size: float):
@@ -126,32 +133,33 @@ def sarsa(env: gym.Env, num_steps: int, gamma: float, epsilon: float, step_size:
         policy = create_epsilon_policy(Q, epsilon)
         action = policy(state)
 
-        while n < num_steps:
+        while True:
             next_state, reward, done, _ = env.step(action)
+            policy = create_epsilon_policy(Q, epsilon)
             next_action = policy(next_state)
             Q[state][action] += step_size * (reward + gamma * Q[next_state][next_action] - Q[state][action])
 
             if done:
                 count += 1
-                episode_list[n] = count
                 break
 
-            episode_list[n] = count
+            if n < num_steps:
+                episode_list[n] = count
 
             action = next_action
             state = next_state
             n += 1
 
-    #print(episode_list)
+    # print(episode_list)
     return episode_list
 
 
 def nstep_sarsa(
-    env: gym.Env,
-    num_steps: int,
-    gamma: float,
-    epsilon: float,
-    step_size: float,
+        env: gym.Env,
+        num_steps: int,
+        gamma: float,
+        epsilon: float,
+        step_size: float,
 ):
     """N-step SARSA
 
@@ -163,15 +171,59 @@ def nstep_sarsa(
         step_size (float): step size
     """
     # TODO
-    pass
+    n_step = 4
+
+    Q = defaultdict(lambda: np.zeros(env.action_space.n))
+    S = [() for _ in range(n_step)]
+    A = np.zeros(n_step, dtype=int)
+    R = np.zeros(n_step, dtype=float)
+
+    policy = create_epsilon_policy(Q, epsilon)
+    episode_list = np.zeros(num_steps)
+    episode_count = 0
+    step_count = 0
+
+    while step_count < num_steps:
+        t = 0
+        S[t] = env.reset()
+        T = np.infty
+
+        while t < T:
+            t_index = t % (n_step - 1)
+            action = policy(S[t_index])
+            A[t_index] = action
+            S[t_index + 1], R[t_index + 1], done, _ = env.step(A[t_index])
+
+            if step_count >= num_steps:
+                break
+            if done:
+                T = t + 1
+                episode_count += 1
+                episode_list[step_count] = episode_count
+            else:
+                policy = create_epsilon_policy(Q, epsilon)
+                A[t_index + 1] = policy(S[t_index + 1])
+                episode_list[step_count] = episode_count
+
+            tau = t - n_step + 2
+            if tau >= 0:
+                G = sum([(gamma ** (i - tau - 1)) * R[i % n_step] for i in range(tau + 1, min(tau + n_step - 1, T) + 1)])
+                if tau >= 0:
+                    G += (gamma ** n_step) * Q[S[t_index+1]][A[t_index+1]]
+                Q[S[t_index]][A[t_index]] += step_size * (G - Q[S[t_index]][A[t_index]])
+            t += 1
+            step_count += 1
+
+    # print(episode_list)
+    return episode_list
 
 
 def exp_sarsa(
-    env: gym.Env,
-    num_steps: int,
-    gamma: float,
-    epsilon: float,
-    step_size: float,
+        env: gym.Env,
+        num_steps: int,
+        gamma: float,
+        epsilon: float,
+        step_size: float,
 ):
     """Expected SARSA
 
@@ -193,32 +245,39 @@ def exp_sarsa(
         policy = create_epsilon_policy(Q, epsilon)
         action = policy(state)
 
-        while n < num_steps:
+        while True:
+
             next_state, reward, done, _ = env.step(action)
             next_action = policy(next_state)
-            Q[state][action] += step_size * (reward + gamma * Q[next_state][next_action] - Q[state][action])
+            value = 0
+
+            prob = np.ones(env.action_space.n) * (epsilon / env.action_space.n)
+            prob[np.argmax(Q[next_state])] += (1 - epsilon)
+            for i in range(env.action_space.n):
+                value += (prob[i] * Q[next_state][i])
+            Q[state][action] += step_size * (reward + gamma * value - Q[state][action])
 
             if done:
                 count += 1
-                episode_list[n] = count
                 break
 
-            episode_list[n] = count
+            if n < num_steps:
+                episode_list[n] = count
 
             action = next_action
             state = next_state
             n += 1
 
-    # print(episode_list)
+    #print(episode_list)
     return episode_list
 
 
 def q_learning(
-    env: gym.Env,
-    num_steps: int,
-    gamma: float,
-    epsilon: float,
-    step_size: float,
+        env: gym.Env,
+        num_steps: int,
+        gamma: float,
+        epsilon: float,
+        step_size: float,
 ):
     """Q-learning
 
@@ -242,19 +301,14 @@ def q_learning(
             policy = create_epsilon_policy(Q, epsilon)
             action = policy(state)
             next_state, reward, done, _ = env.step(action)
-            # next_action = policy(next_state)
-            value = []
-            #print(action)
-            for a in env0.Action:
-                value.append(Q[next_state][a])
-            Q[state][action] += step_size * (reward + gamma * np.max(value) - Q[state][action])
+            Q[state][action] += step_size * (reward + gamma * np.max(Q[next_state]) - Q[state][action])
 
             if done:
                 count += 1
-                episode_list[n] = count
                 break
 
-            episode_list[n] = count
+            if n < num_steps:
+                episode_list[n] = count
 
             state = next_state
             n += 1
@@ -275,38 +329,11 @@ def td_prediction(env: gym.Env, gamma: float, episodes, n=1) -> defaultdict:
         n (int): The number of steps to use for TD update. Use n=1 for TD(0).
     """
     # TODO
-    # Q = defaultdict(lambda: np.zeros(env.action_space.n))
-    # episode_list = np.zeros(num_steps)
-    # count = 0
-    # n = 0
-    #
-    # while n < num_steps:
-    #     state = env.reset()
-    #     policy = create_epsilon_policy(Q, epsilon)
-    #     action = policy(state)
-    #
-    #     while n < num_steps:
-    #         next_state, reward, done, _ = env.step(action)
-    #         next_action = policy(next_state)
-    #         Q[state][action] += step_size * (reward + gamma * Q[next_state][next_action] - Q[state][action])
-    #
-    #         if done:
-    #             count += 1
-    #             episode_list[n] = count
-    #             break
-    #
-    #         episode_list[n] = count
-    #
-    #         action = next_action
-    #         state = next_state
-    #         n += 1
-    #
-    # # print(episode_list)
-    # return episode_list
+    pass
 
 
 def learning_targets(
-    V: defaultdict, gamma: float, episodes, n: Optional[int] = None
+        V: defaultdict, gamma: float, episodes, n: Optional[int] = None
 ) -> np.ndarray:
     """Compute the learning targets for the given evaluation episodes.
 
